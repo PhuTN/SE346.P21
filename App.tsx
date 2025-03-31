@@ -2,9 +2,8 @@ import { NavigationContainer } from "@react-navigation/native";
 import Login from "./components/login/Login";
 
 import { createStackNavigator } from "@react-navigation/stack";
-import StudentList from "./components/subjectList/StudentList";
-import SubjectList from "./components/subjectList/StudentList";
-import SubjectDetail from "./components/subjectDetail/SubjectDetail";
+import EmployeeList from "./components/employeeList/EmployeeList";
+import EmployeeDetail from "./components/employeeDetail/EmployeeDetail";
 
 export default function App() {
   const Stack = createStackNavigator();
@@ -13,8 +12,8 @@ export default function App() {
     <NavigationContainer>
       <Stack.Navigator>
         <Stack.Screen name="Login" component={Login}options={{ title: 'Đăng nhập' }}  />
-        <Stack.Screen name="Subject List" component={SubjectList} options={{ title: 'Danh sách môn học ' }} />
-        <Stack.Screen name="Subject Detail" component={SubjectDetail} options={{ title: 'Chi tiết môn học' }} />
+        <Stack.Screen name="Employee List" component={EmployeeList} options={{ title: 'Danh sách nhân viên ' }} />
+        <Stack.Screen name="Employee Detail" component={EmployeeDetail} options={{ title: 'Chi tiết nhân viên' }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

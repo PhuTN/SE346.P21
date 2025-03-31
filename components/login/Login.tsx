@@ -8,18 +8,34 @@ const Login = ({ navigation }) => {
   const [password, setPassword] = useState('');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = () => {
-    const foundUser = students.find(
-      (user) => user.username === username && user.password === password
-    );
-
-    if (foundUser) {
-      setErrorMessage('');
-      navigation.navigate('Subject List', { username: foundUser.username });
-    } else {
-      setErrorMessage('Tên đăng nhập hoặc mật khẩu không đúng!');
+  const handleLogin = async () => {
+    try {
+      console.log("🔐 Đang kiểm tra đăng nhập...");
+      // CÓ ĐỨA NÀO XÓA EMLOYEE ID 2 RỒI THẦY
+      const response = await fetch('http://blackntt.net:88/api/v1/employees');
+      const data = await response.json();
+  
+      let matchedUser = null;
+      console.log(data)
+      for (const emp of data) {
+        if (emp.employee_name === username) {
+          matchedUser = emp;
+          break;
+        }
+      }
+  
+      if (matchedUser) {
+        setErrorMessage('');
+        navigation.navigate('Employee List', { username: matchedUser.employee_name });
+      } else {
+        setErrorMessage('Tên đăng nhập không đúng!');
+      }
+    } catch (error) {
+      console.error(error);
+      setErrorMessage('Lỗi kết nối đến máy chủ!');
     }
   };
+  
 
   useFocusEffect(
     useCallback(() => {
