@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Button,
+  Alert,
 } from 'react-native';
 
 const EmployeeList = () => {
@@ -68,6 +69,9 @@ const EmployeeList = () => {
       const newEmployee = await response.json();
   
       if (newEmployee) {
+        setTimeout(() => {
+           Alert.alert('Thành công', 'Thêm nhân viên thành công!.');
+        }, 500);
         navigation.navigate('Employee Detail', { employee: newEmployee });
       }
     } catch (error) {

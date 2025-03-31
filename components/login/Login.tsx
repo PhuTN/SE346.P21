@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { students } from '../../data/students';
 
@@ -26,7 +26,12 @@ const Login = ({ navigation }) => {
   
       if (matchedUser) {
         setErrorMessage('');
-        navigation.navigate('Employee List', { username: matchedUser.employee_name });
+
+        Alert.alert('Thành công', 'Đăng nhập thành công!.');
+                        setTimeout(() => {
+                          navigation.navigate('Employee List', { username: matchedUser.employee_name });
+                        }, 500);
+       
       } else {
         setErrorMessage('Tên đăng nhập không đúng!');
       }
