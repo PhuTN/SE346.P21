@@ -148,13 +148,13 @@ const styles = StyleSheet.create({
   },
   rowButtons: {
     flexDirection: 'row',
-    gap: 10, // nếu bạn dùng React Native mới, hoặc dùng marginRight nếu không hỗ trợ gap
+    gap: 10, 
     justifyContent: 'flex-start',
     alignItems: 'center',
   },
   
   buttonWrapper: {
-    marginRight: 8, // khoảng cách giữa các button (dự phòng nếu `gap` không hoạt động)
+    marginRight: 8, 
   },
   
   title: {
