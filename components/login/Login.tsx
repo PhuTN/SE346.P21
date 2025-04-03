@@ -1,54 +1,98 @@
-import React, { useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useFocusEffect } from '@react-navigation/native';
-import { students } from '../../data/students';
 
 const Login = ({ navigation }) => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [storedUsername, setStoredUsername] = useState('user');
+  const [storedPassword, setStoredPassword] = useState('123456');
   const [errorMessage, setErrorMessage] = useState('');
 
-  const handleLogin = async () => {
-    try {
-      console.log("🔐 Đang kiểm tra đăng nhập...");
-      // CÓ ĐỨA NÀO XÓA EMLOYEE ID 2 RỒI THẦY
-      const response = await fetch('http://blackntt.net:88/api/v1/employees');
-      const data = await response.json();
-  
-      let matchedUser = null;
-      console.log(data)
-      for (const emp of data) {
-        if (emp.employee_name === username) {
-          matchedUser = emp;
-          break;
-        }
-      }
-  
-      if (matchedUser) {
-        setErrorMessage('');
+  const [changePasswordMode, setChangePasswordMode] = useState(false);
+  const [forgotPasswordMode, setForgotPasswordMode] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
 
-        Alert.alert('Thành công', 'Đăng nhập thành công!.');
-                        setTimeout(() => {
-                          navigation.navigate('Employee List', { username: matchedUser.employee_name });
-                        }, 500);
-       
-      } else {
-        setErrorMessage('Tên đăng nhập không đúng!');
-      }
-    } catch (error) {
-      console.error(error);
-      setErrorMessage('Lỗi kết nối đến máy chủ!');
-    }
-  };
-  
-
+  // Load dữ liệu khi vào màn
   useFocusEffect(
     useCallback(() => {
-      setUsername('');
-      setPassword('');
-      setErrorMessage('');
+      loadStoredCredentials();
+      resetForm();
     }, [])
   );
+
+  const resetForm = () => {
+    setUsername('');
+    setPassword('');
+    setErrorMessage('');
+    setChangePasswordMode(false);
+    setForgotPasswordMode(false);
+    setNewPassword('');
+  };
+
+  const loadStoredCredentials = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('username');
+      const storedPass = await AsyncStorage.getItem('password');
+
+      if (!storedUser || !storedPass) {
+        await AsyncStorage.setItem('username', 'user');
+        await AsyncStorage.setItem('password', '123456');
+        setStoredUsername('user');
+        setStoredPassword('123456');
+      } else {
+        setStoredUsername(storedUser);
+        setStoredPassword(storedPass);
+      }
+    } catch (e) {
+      console.error('Lỗi load thông tin:', e);
+    }
+  };
+
+  const handleLogin = async () => {
+    console.log(storedUsername,storedPassword)
+    if (username === storedUsername && password === storedPassword) {
+      setErrorMessage('');
+      Alert.alert('Thành công', 'Đăng nhập thành công!');
+      navigation.navigate('TodoList');
+    } else {
+      setErrorMessage('Tên đăng nhập hoặc mật khẩu không đúng!');
+    }
+  };
+
+  const handleChangePassword = async () => {
+    if (!username.trim() || !password.trim()) {
+      Alert.alert("Lỗi", "Vui lòng nhập tên đăng nhập và mật khẩu hiện tại!");
+      return;
+    }
+
+    if (username !== storedUsername || password !== storedPassword) {
+      Alert.alert("Lỗi", "Thông tin không khớp, không thể đổi mật khẩu!");
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      Alert.alert("Lỗi", "Vui lòng nhập mật khẩu mới!");
+      return;
+    }
+
+    await AsyncStorage.setItem('password', newPassword);
+    setStoredPassword(newPassword);
+    Alert.alert("Thành công", "Đổi mật khẩu thành công!");
+    resetForm();
+  };
+
+  const handleForgotPassword = async () => {
+    if (!newPassword.trim()) {
+      Alert.alert("Lỗi", "Vui lòng nhập mật khẩu mới!");
+      return;
+    }
+    await AsyncStorage.setItem('password', newPassword);
+    setStoredPassword(newPassword);
+    Alert.alert("Thành công", "Mật khẩu đã được đặt lại!");
+    resetForm();
+  };
 
   return (
     <View style={styles.container}>
@@ -59,7 +103,6 @@ const Login = ({ navigation }) => {
         <TextInput
           style={[styles.input, errorMessage ? styles.inputError : null]}
           placeholder="Nhập tên đăng nhập"
-          placeholderTextColor="#A0A0A0"
           value={username}
           onChangeText={(text) => {
             setUsername(text);
@@ -71,7 +114,6 @@ const Login = ({ navigation }) => {
         <TextInput
           style={[styles.input, errorMessage ? styles.inputError : null]}
           placeholder="Nhập mật khẩu"
-          placeholderTextColor="#A0A0A0"
           secureTextEntry
           value={password}
           onChangeText={(text) => {
@@ -82,9 +124,54 @@ const Login = ({ navigation }) => {
 
         {errorMessage ? <Text style={styles.errorText}>{errorMessage}</Text> : null}
 
-        <TouchableOpacity style={styles.button} onPress={handleLogin}>
-          <Text style={styles.buttonText}>Xác nhận và tiếp tục</Text>
-        </TouchableOpacity>
+        {!changePasswordMode && !forgotPasswordMode && (
+          <>
+            <TouchableOpacity style={styles.button} onPress={handleLogin}>
+              <Text style={styles.buttonText}>Xác nhận và tiếp tục</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => {
+                setChangePasswordMode(true);
+                setUsername('');
+                setPassword('');
+                setNewPassword('');
+                setErrorMessage('');
+              }}
+              style={{ marginTop: 10 }}
+            >
+          <Text style={{ color: 'red', textAlign: 'center', fontStyle: 'italic' }}>
+  Đổi mật khẩu
+</Text>
+
+            </TouchableOpacity>
+
+            
+          </>
+        )}
+
+        {(changePasswordMode || forgotPasswordMode) && (
+          <>
+            <Text style={[styles.label, { marginTop: 15 }]}>Mật khẩu mới</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Nhập mật khẩu mới"
+              secureTextEntry
+              value={newPassword}
+              onChangeText={setNewPassword}
+            />
+            <TouchableOpacity
+              style={[styles.button, { marginTop: 10 }]}
+              onPress={forgotPasswordMode ? handleForgotPassword : handleChangePassword}
+            >
+              <Text style={styles.buttonText}>{forgotPasswordMode ? "Đặt lại mật khẩu" : "Đổi mật khẩu"}</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity onPress={resetForm} style={{ marginTop: 15 }}>
+              <Text style={{ textAlign: 'center', color: 'gray' }}>← Quay lại</Text>
+            </TouchableOpacity>
+          </>
+        )}
       </View>
     </View>
   );
@@ -113,14 +200,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     textAlign: 'center',
     marginBottom: 20,
-    fontFamily: 'Caveat-Bold',
   },
   label: {
     fontSize: 14,
     fontWeight: 'bold',
     marginBottom: 5,
     marginLeft: 5,
-    fontFamily: 'Caveat-Regular',
   },
   input: {
     height: 50,
@@ -130,7 +215,6 @@ const styles = StyleSheet.create({
     paddingLeft: 15,
     marginBottom: 15,
     fontSize: 16,
-    fontFamily: 'Caveat-Regular',
   },
   inputError: {
     borderColor: 'red',
@@ -152,7 +236,6 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
-    fontFamily: 'Caveat-Bold',
   },
 });
 
